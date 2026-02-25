@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二次函数图像绘制工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .input-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-description {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-plot {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-plot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-reset {
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .btn-reset:hover {
+            background: #e0e0e0;
+        }
+
+        .info-panel {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #333;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 500px;
+        }
+
+        canvas {
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .formula-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 二次函数图像绘制工具</h1>
+        
+        <div class="content">
+            <div class="input-panel">
+                <div class="formula-display">
+                    y = ax² + bx + c
+                </div>
+
+                <div class="form-group">
+                    <label for="a">参数 a (二次项系数)</label>
+                    <input type="number" id="a" value="1" step="0.1">
+                    <div class="input-description">控制抛物线的开口方向和宽度（a≠0）</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="b">参数 b (一次项系数)</label>
+                    <input type="number" id="b" value="0" step="0.1">
+                    <div class="input-description">影响抛物线的对称轴位置</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="c">参数 c (常数项)</label>
+                    <input type="number" id="c" value="0" step="0.1">
+                    <div class="input-description">抛物线与y轴的交点</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="scale">缩放比例</label>
+                    <input type="number" id="scale" value="50" step="10" min="10" max="200">
+                    <div class="input-description">调整坐标系的显示比例</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-plot" onclick="plotGraph()">📈 绘制图像</button>
+                    <button class="btn-reset" onclick="resetForm()">🔄 重置</button>
+                </div>
+
+                <div class="info-panel">
+                    <div class="info-item">
+                        <span class="info-label">顶点坐标:</span>
+                        <span id="vertex">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">对称轴:</span>
+                        <span id="axis">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">开口方向:</span>
+                        <span id="direction">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">y轴截距:</span>
+                        <span id="intercept">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="canvas" width="450" height="450"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function plotGraph() {
+            // 获取参数值
+            const a = parseFloat(document.getElementById('a').value);
+            const b = parseFloat(document.getElementById('b').value);
+            const c = parseFloat(document.getElementById('c').value);
+            const scale = parseFloat(document.getElementById('scale').value);
+
+            // 验证参数
+            if (a === 0) {
+                alert('参数 a 不能为0！');
+                return;
+            }
+
+            if (isNaN(a) || isNaN(b) || isNaN(c)) {
+                alert('请输入有效的数字！');
+                return;
+            }
+
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // 绘制坐标轴
+            drawAxes(centerX, centerY, scale);
+
+            // 绘制二次函数
+            drawQuadraticFunction(a, b, c, centerX, centerY, scale);
+
+            // 绘制关键点
+            drawKeyPoints(a, b, c, centerX, centerY, scale);
+
+            // 更新信息面板
+            updateInfo(a, b, c);
+        }
+
+        function drawAxes(centerX, centerY, scale) {
+            // X轴
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+
+            // Y轴
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.stroke();
+
+            // 绘制网格和刻度
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            for (let i = -5; i <= 5; i++) {
+                if (i === 0) continue;
+
+                const x = centerX + i * scale;
+                const y = centerY - i * scale;
+
+                // X轴刻度
+                if (x > 0 && x < canvas.width) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, centerY - 5);
+                    ctx.lineTo(x, centerY + 5);
+                    ctx.stroke();
+                    ctx.fillText(i, x, centerY + 15);
+
+                    // 网格线
+                    ctx.strokeStyle = '#f0f0f0';
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                    ctx.strokeStyle = '#e0e0e0';
+                }
+
+                // Y轴刻度
+                if (y > 0 && y < canvas.height) {
+                    ctx.beginPath();
+                    ctx.moveTo(centerX - 5, y);
+                    ctx.lineTo(centerX + 5, y);
+                    ctx.stroke();
+                    ctx.textAlign = 'right';
+                    ctx.fillText(i, centerX - 15, y - 6);
+                    ctx.textAlign = 'center';
+
+                    // 网格线
+                    ctx.strokeStyle = '#f0f0f0';
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                    ctx.strokeStyle = '#e0e0e0';
+                }
+            }
+
+            // 原点标记
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText('O', centerX - 8, centerY + 15);
+        }
+
+        function drawQuadraticFunction(a, b, c, centerX, centerY, scale) {
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            let isFirstPoint = true;
+            for (let px = 0; px < canvas.width; px++) {
+                const x = (px - centerX) / scale;
+                const y = a * x * x + b * x + c;
+                const py = centerY - y * scale;
+
+                if (py > -100 && py < canvas.height + 100) {
+                    if (isFirstPoint) {
+                        ctx.moveTo(px, py);
+                        isFirstPoint = false;
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+            }
+            ctx.stroke();
+        }
+
+        function drawKeyPoints(a, b, c, centerX, centerY, scale) {
+            // 顶点坐标
+            const vertexX = -b / (2 * a);
+            const vertexY = c - (b * b) / (4 * a);
+            const vertexPx = centerX + vertexX * scale;
+            const vertexPy = centerY - vertexY * scale;
+
+            // 绘制顶点
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(vertexPx, vertexPy, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // y轴截距点
+            const interceptPx = centerX;
+            const interceptPy = centerY - c * scale;
+
+            ctx.fillStyle = '#51cf66';
+            ctx.beginPath();
+            ctx.arc(interceptPx, interceptPy, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制虚线辅助线（对称轴）
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(vertexPx, 0);
+            ctx.lineTo(vertexPx, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 绘制顶点标签
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`(${vertexX.toFixed(2)}, ${vertexY.toFixed(2)})`, vertexPx, vertexPy - 15);
+        }
+
+        function updateInfo(a, b, c) {
+            // 顶点
+            const vertexX = -b / (2 * a);
+            const vertexY = c - (b * b) / (4 * a);
+            document.getElementById('vertex').textContent = 
+                `(${vertexX.toFixed(3)}, ${vertexY.toFixed(3)})`;
+
+            // 对称轴
+            document.getElementById('axis').textContent = 
+                `x = ${vertexX.toFixed(3)}`;
+
+            // 开口方向
+            const direction = a > 0 ? '向上 ⬆️' : '向下 ⬇️';
+            document.getElementById('direction').textContent = direction;
+
+            // y轴截距
+            document.getElementById('intercept').textContent = 
+                `(0, ${c.toFixed(3)})`;
+        }
+
+        function resetForm() {
+            document.getElementById('a').value = '1';
+            document.getElementById('b').value = '0';
+            document.getElementById('c').value = '0';
+            document.getElementById('scale').value = '50';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('vertex').textContent = '-';
+            document.getElementById('axis').textContent = '-';
+            document.getElementById('direction').textContent = '-';
+            document.getElementById('intercept').textContent = '-';
+        }
+
+        // 页面加载时绘制默认图像
+        window.addEventListener('load', plotGraph);
+    </script>
+</body>
+</html>
